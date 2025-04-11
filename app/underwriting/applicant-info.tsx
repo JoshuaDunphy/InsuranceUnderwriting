@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
+import { useState, useEffect } from "react"
+import { Link, useParams, useNavigate } from "react-router-dom"
 import { ChevronRight } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -48,9 +48,16 @@ const formSchema = z.object({
   }),
 })
 
-export default function ApplicantInfoPage({ params }: { params: { type: string } }) {
-  const insuranceType = params.type
+export default function ApplicantInfoPage() {
+  const [isMounted, setIsMounted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const params = useParams()
+  const navigate = useNavigate()
+  const insuranceType = params.type || "auto"
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -75,18 +82,22 @@ export default function ApplicantInfoPage({ params }: { params: { type: string }
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false)
-      window.location.href = `/underwriting/${insuranceType}/policy-details`
+      navigate(`/underwriting/${insuranceType}/policy-details`)
     }, 1500)
+  }
+
+  if (!isMounted) {
+    return null
   }
 
   return (
     <div className="container py-10">
       <div className="flex items-center gap-2 mb-8">
-        <Link href="/" className="text-muted-foreground hover:text-foreground text-sm">
+        <Link to="/" className="text-muted-foreground hover:text-foreground text-sm">
           Home
         </Link>
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        <Link href="/underwriting" className="text-muted-foreground hover:text-foreground text-sm">
+        <Link to="/underwriting" className="text-muted-foreground hover:text-foreground text-sm">
           New Application
         </Link>
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -306,7 +317,7 @@ export default function ApplicantInfoPage({ params }: { params: { type: string }
 
                 <div className="flex justify-end gap-4">
                   <Button variant="outline" type="button" asChild>
-                    <Link href="/underwriting">Back</Link>
+                    <Link to="/underwriting">Back</Link>
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Saving..." : "Continue"}
